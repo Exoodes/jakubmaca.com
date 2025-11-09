@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="cs">
+
+<head>
+    <meta charset="utf-8">
+    <title>Jednoduchý šifrovací skript</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg-card: #111827;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.15);
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-subtle: #1f2937;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2933 0, #020617 55%, #000 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow:
+                0 25px 50px -12px rgba(15, 23, 42, 0.9),
+                0 0 0 1px rgba(148, 163, 184, 0.12);
+            backdrop-filter: blur(12px);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.6rem;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h1 span.logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #38bdf8 0, #0ea5e9 40%, #0369a1 100%);
+            font-size: 1.2rem;
+        }
+
+        p.description {
+            margin-top: 4px;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            background-color: #020617;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 90px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent-soft);
+        }
+
+        .options {
+            margin: 12px 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .option-row input[type="checkbox"] {
+            margin-top: 2px;
+            min-width: 18px;
+            min-height: 18px;
+        }
+
+        .option-label-main {
+            color: var(--text-main);
+            font-weight: 500;
+            display: block;
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            margin-top: 2px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: #0b1120;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -10px rgba(56, 189, 248, 0.8);
+            transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.1s ease-out;
+        }
+
+        button span.icon {
+            font-size: 1.1rem;
+        }
+
+        button:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: 0 5px 18px -8px rgba(56, 189, 248, 0.8);
+            filter: brightness(0.98);
+        }
+
+        .output-wrapper {
+            margin-top: 18px;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .output-header p {
+            margin: 0;
+        }
+
+        .output-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .output-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            box-shadow: none;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+            filter: none;
+        }
+
+        #output {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            min-height: 1.8em;
+            background: #020617;
+            white-space: pre-wrap;
+            font-family: "JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.95rem;
+            overflow-x: auto;
+            margin-top: 6px;
+        }
+
+        .key-info {
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            padding-top: 10px;
+        }
+
+        .key-info details {
+            border-radius: 10px;
+            padding: 8px 10px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .key-info summary {
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .key-info summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .key-info summary::before {
+            content: "▶";
+            font-size: 0.7rem;
+            transition: transform 0.1s ease-out;
+        }
+
+        .key-info details[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .key-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 4px 12px;
+            margin-top: 8px;
+        }
+
+        .key-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: "JetBrains Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .key-letter {
+            font-weight: 600;
+            color: #e5e7eb;
+        }
+
+        .key-arrow {
+            opacity: 0.7;
+        }
+
+        .key-code {
+            color: #7dd3fc;
+        }
+
+        .key-note {
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 14px;
+                border-radius: 14px;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .copy-btn {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>
+                <span class="logo">▲</span>
+                Jednoduchý vstup / výstup – šifra
+            </h1>
+            <p class="description">
+                Napiš větu, vyber, jak se mají dělat mezery a co dělat s neznámými znaky, a klikni na
+                <strong>Zašifruj</strong>.
+            </p>
+
+            <label for="inputText">Vstupní text:</label>
+            <textarea id="inputText" rows="4" placeholder="Např. Tajná zpráva pro kamaráda..."></textarea>
+
+            <div class="options">
+                <div class="option-row">
+                    <input id="spaceWords" type="checkbox">
+                    <label for="spaceWords">
+                        <span class="option-label-main">Mezery jen mezi slovy</span>
+                        <span>Uvnitř slov znaky bez mezer. Původní mezery a nové řádky zůstanou zachované.</span>
+                    </label>
+                </div>
+                <div class="option-row">
+                    <input id="skipUnknown" type="checkbox">
+                    <label for="skipUnknown">
+                        <span class="option-label-main">Přeskočit neznámé znaky</span>
+                        <span>Znaky mimo klíč (včetně písmen s diakritikou) se úplně vynechají. Jinak se vypíší beze
+                            změny.</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" onclick="zpracujVstup()">
+                <span class="icon">🔐</span>
+                <span>Zašifruj text</span>
+            </button>
+
+            <div class="output-wrapper">
+                <div class="output-header">
+                    <p><strong>Výstup:</strong></p>
+                    <div class="output-actions">
+                        <span class="output-hint">Výsledek můžeš označit a zkopírovat.</span>
+                        <button id="copyBtn" type="button" class="copy-btn" onclick="kopirovatVystup()">
+                            📋 Kopírovat
+                        </button>
+                    </div>
+                </div>
+                <div id="output"></div>
+            </div>
+
+            <div class="key-info">
+                <details>
+                    <summary>Šifrovací klíč (rozklikni pro zobrazení)</summary>
+                    <div class="key-grid">
+                        <div class="key-item"><span class="key-letter">A</span><span class="key-arrow">→</span><span
+                                class="key-code">▲</span></div>
+                        <div class="key-item"><span class="key-letter">B</span><span class="key-arrow">→</span><span
+                                class="key-code">▲▲</span></div>
+                        <div class="key-item"><span class="key-letter">C</span><span class="key-arrow">→</span><span
+                                class="key-code">▲►</span></div>
+                        <div class="key-item"><span class="key-letter">D</span><span class="key-arrow">→</span><span
+                                class="key-code">▲◄</span></div>
+                        <div class="key-item"><span class="key-letter">E</span><span class="key-arrow">→</span><span
+                                class="key-code">▲▼</span></div>
+                        <div class="key-item"><span class="key-letter">F</span><span class="key-arrow">→</span><span
+                                class="key-code">►▲</span></div>
+                        <div class="key-item"><span class="key-letter">G</span><span class="key-arrow">→</span><span
+                                class="key-code">►►</span></div>
+                        <div class="key-item"><span class="key-letter">H</span><span class="key-arrow">→</span><span
+                                class="key-code">►◄</span></div>
+                        <div class="key-item"><span class="key-letter">I</span><span class="key-arrow">→</span><span
+                                class="key-code">►▼</span></div>
+                        <div class="key-item"><span class="key-letter">J</span><span class="key-arrow">→</span><span
+                                class="key-code">◄▲</span></div>
+                        <div class="key-item"><span class="key-letter">K</span><span class="key-arrow">→</span><span
+                                class="key-code">◄►</span></div>
+                        <div class="key-item"><span class="key-letter">L</span><span class="key-arrow">→</span><span
+                                class="key-code">◄◄</span></div>
+                        <div class="key-item"><span class="key-letter">M</span><span class="key-arrow">→</span><span
+                                class="key-code">◄▼</span></div>
+                        <div class="key-item"><span class="key-letter">N</span><span class="key-arrow">→</span><span
+                                class="key-code">▼▲</span></div>
+                        <div class="key-item"><span class="key-letter">O</span><span class="key-arrow">→</span><span
+                                class="key-code">▼►</span></div>
+                        <div class="key-item"><span class="key-letter">P</span><span class="key-arrow">→</span><span
+                                class="key-code">▼◄</span></div>
+                        <div class="key-item"><span class="key-letter">Q</span><span class="key-arrow">→</span><span
+                                class="key-code">▼▼</span></div>
+                        <div class="key-item"><span class="key-letter">R</span><span class="key-arrow">→</span><span
+                                class="key-code">▲▲▲</span></div>
+                        <div class="key-item"><span class="key-letter">S</span><span class="key-arrow">→</span><span
+                                class="key-code">▲►▲</span></div>
+                        <div class="key-item"><span class="key-letter">T</span><span class="key-arrow">→</span><span
+                                class="key-code">▲◄▲</span></div>
+                        <div class="key-item"><span class="key-letter">U</span><span class="key-arrow">→</span><span
+                                class="key-code">▲▼▲</span></div>
+                        <div class="key-item"><span class="key-letter">V</span><span class="key-arrow">→</span><span
+                                class="key-code">►▲►</span></div>
+                        <div class="key-item"><span class="key-letter">W</span><span class="key-arrow">→</span><span
+                                class="key-code">►►►</span></div>
+                        <div class="key-item"><span class="key-letter">X</span><span class="key-arrow">→</span><span
+                                class="key-code">►◄►</span></div>
+                        <div class="key-item"><span class="key-letter">Y</span><span class="key-arrow">→</span><span
+                                class="key-code">►▼►</span></div>
+                        <div class="key-item"><span class="key-letter">Z</span><span class="key-arrow">→</span><span
+                                class="key-code">◄▲◄</span></div>
+                    </div>
+                    <p class="key-note">
+                        Šifrují se písmena A–Z (bez rozlišení velikosti). Písmena s diakritikou a další znaky
+                        se berou jako „neznámé“ – buď se přeskočí, nebo vypíšou beze změny podle nastavení.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mapa šifry podle zadaného klíče (písmena jsou brána bez rozlišení velikosti)
+        const cipherMap = {
+            'A': '▲',
+            'B': '▲▲',
+            'C': '▲►',
+            'D': '▲◄',
+            'E': '▲▼',
+            'F': '►▲',
+            'G': '►►',
+            'H': '►◄',
+            'I': '►▼',
+            'J': '◄▲',
+            'K': '◄►',
+            'L': '◄◄',
+            'M': '◄▼',
+            'N': '▼▲',
+            'O': '▼►',
+            'P': '▼◄',
+            'Q': '▼▼',
+            'R': '▲▲▲',
+            'S': '▲►▲',
+            'T': '▲◄▲',
+            'U': '▲▼▲',
+            'V': '►▲►',
+            'W': '►►►',
+            'X': '►◄►',
+            'Y': '►▼►',
+            'Z': '◄▲◄'
+        };
+
+        function isWhitespace(ch) {
+            // jakýkoli bílý znak: mezera, tab, nový řádek atd.
+            return /\s/.test(ch);
+        }
+
+        function encodeSegment(segment, spaceWordsOnly, skipUnknown) {
+            // segment = souvislá část bez bílých znaků (tj. jedno "slovo" / blok)
+            const pieces = [];
+
+            for (const ch of segment) {
+                const upper = ch.toUpperCase();
+                const code = cipherMap[upper];
+
+                if (code) {
+                    pieces.push(code);
+                } else if (!skipUnknown) {
+                    // znak není v klíči a nepreskakujeme -> necháme ho tak, jak je
+                    pieces.push(ch);
+                }
+                // když je skipUnknown a znak není v mapě, nic nepřidáme
+            }
+
+            if (spaceWordsOnly) {
+                // uvnitř slova bez mezer
+                return pieces.join('');
+            } else {
+                // mezera po "každém znaku" (resp. kódu)
+                return pieces.join(' ');
+            }
+        }
+
+        function zpracujVstup() {
+            const text = document.getElementById('inputText').value;
+            const spaceWordsOnly = document.getElementById('spaceWords').checked;
+            const skipUnknown = document.getElementById('skipUnknown').checked;
+
+            let result = '';
+            let i = 0;
+
+            while (i < text.length) {
+                const ch = text[i];
+
+                if (isWhitespace(ch)) {
+                    // bílý znak přepíšeme beze změny (zachováme mezery i nové řádky)
+                    result += ch;
+                    i += 1;
+                } else {
+                    // načteme souvislý blok ne-bílých znaků (jedno "slovo")
+                    let j = i;
+                    while (j < text.length && !isWhitespace(text[j])) {
+                        j += 1;
+                    }
+                    const segment = text.slice(i, j);
+                    const encoded = encodeSegment(segment, spaceWordsOnly, skipUnknown);
+                    result += encoded;
+                    i = j;
+                }
+            }
+
+            document.getElementById('output').textContent = result;
+        }
+
+        function kopirovatVystup() {
+            const outputEl = document.getElementById('output');
+            const text = outputEl.textContent || '';
+
+            if (!text) {
+                return; // nic ke kopírování
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        zobrazStavZkopirovano();
+                    })
+                    .catch(() => {
+                        fallbackCopy(text);
+                    });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+            } catch (e) {
+                // ignoruj chybu
+            }
+            document.body.removeChild(temp);
+            zobrazStavZkopirovano();
+        }
+
+        function zobrazStavZkopirovano() {
+            const btn = document.getElementById('copyBtn');
+            if (!btn) return;
+
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Zkopírováno!';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 1500);
+        }
+    </script>
+</body>
+
+</html>
